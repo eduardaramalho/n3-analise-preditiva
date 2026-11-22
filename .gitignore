@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv*/
+venv/
+# Sistema
+.DS_Store
+# Observação: mlflow.db, mlartifacts/, models/, artifacts/, reports/ e evidencias/
+# são versionados de propósito (estado do pipeline e evidências do trabalho).
+# Pasta vazia criada pelo experimento padrão do MLflow (não usada)
+mlruns/

@@ -1,0 +1,122 @@
+name: Pipeline MLOps (Spambase)
+
+# Um ciclo completo por execução: ETL, votação de features, competição/promoção e previsões.
+on:
+  schedule:
+    - cron: "17 9 * * *"     # todo dia às 09:17 UTC (06:17 em Brasília)
+  workflow_dispatch:          # execução manual pela aba Actions
+
+# Nunca dois ciclos ao mesmo tempo: um novo disparo espera o anterior terminar
+concurrency:
+  group: pipeline-mlops
+  cancel-in-progress: false
+
+permissions:
+  contents: write             # necessário para o commit do estado atualizado
+
+jobs:
+  ciclo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      NBCONVERT: jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=1800 --ExecutePreprocessor.kernel_name=python3
+
+    steps:
+      - name: Registrar o evento que disparou o ciclo
+        run: |
+          echo "github.event_name = ${{ github.event_name }}"
+          echo "run_id = ${{ github.run_id }} | tentativa = ${{ github.run_attempt }}"
+          echo "inicio (UTC) = $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "### Evento: \`${{ github.event_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: "Notebook 01: ETL"
+        run: |
+          mkdir -p evidencias/execucoes/_em_execucao
+          $NBCONVERT notebooks/01_etl.ipynb --output-dir evidencias/execucoes/_em_execucao
+          CYCLE_ID=$(python -c "import json; print(json.load(open('artifacts/ciclo_atual.json'))['cycle_id'])")
+          PASTA="evidencias/execucoes/${CYCLE_ID}"
+          mv evidencias/execucoes/_em_execucao "$PASTA"
+          echo "CYCLE_ID=${CYCLE_ID}" >> "$GITHUB_ENV"
+          echo "PASTA=${PASTA}" >> "$GITHUB_ENV"
+          echo "cycle_id = ${CYCLE_ID}"
+
+      - name: Gravar evidência do evento
+        run: |
+          {
+            echo "github.event_name: ${{ github.event_name }}"
+            echo "cycle_id: ${CYCLE_ID}"
+            echo "workflow_run_id: ${{ github.run_id }}"
+            echo "workflow_run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "commit: ${{ github.sha }}"
+            echo "inicio_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "${PASTA}/evento.txt"
+          cat "${PASTA}/evento.txt"
+
+      - name: "Notebook 02: votação de features"
+        run: $NBCONVERT notebooks/02_votacao_features.ipynb --output-dir "$PASTA"
+
+      - name: "Notebook 03: competição e promoção"
+        run: $NBCONVERT notebooks/03_competicao_promocao.ipynb --output-dir "$PASTA"
+
+      - name: "Notebook 04: previsões e SHAP"
+        run: $NBCONVERT notebooks/04_previsoes.ipynb --output-dir "$PASTA"
+
+      - name: Resumo do ciclo
+        run: |
+          python - <<'EOF' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json
+          c = json.load(open("artifacts/ciclo_atual.json"))
+          d = c["decisao"]
+          print(f"- **cycle_id:** {c['cycle_id']}")
+          print(f"- **data_version:** {c['data_version']}")
+          print(f"- **lote novo:** {c['lote_novo'] or 'nenhum'}")
+          print(f"- **vencedor:** {c['vencedor']} ({d['algoritmo_vencedor']})")
+          print(f"- **decisão:** {d['decisao']}: {d['motivo']}")
+          EOF
+          echo "fim_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "${PASTA}/evento.txt"
+
+      - name: Publicar artefatos do ciclo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciclo-${{ env.CYCLE_ID || github.run_id }}
+          path: |
+            evidencias/execucoes/
+            mlflow.db
+            mlartifacts/
+            models/
+            reports/figuras/
+            artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Commit do estado atualizado
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/processed artifacts models reports evidencias mlflow.db mlartifacts
+          if git diff --cached --quiet; then
+            echo "Nada a commitar."
+            exit 0
+          fi
+          DECISAO=$(python -c "import json; print(json.load(open('artifacts/ciclo_atual.json'))['decisao']['decisao'])")
+          git commit -m "ciclo ${CYCLE_ID} (${{ github.event_name }}): ${DECISAO} [skip ci]"
+          for tentativa in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((tentativa * 5))
+          done
+          echo "Falha ao enviar o commit" && exit 1

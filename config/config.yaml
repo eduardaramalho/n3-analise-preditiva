@@ -1,0 +1,96 @@
+# Configuração central do pipeline MLOps (Trabalho N3, Análise Preditiva).
+# Todos os parâmetros do projeto vêm deste arquivo. Os caminhos são relativos à raiz do repositório.
+
+projeto:
+  nome: spambase-mlops
+  seed: 42
+
+dados:
+  # Arquivos originais da UCI (id 94, licença CC BY 4.0), mantidos sem alteração
+  original_data: data/raw/original/spambase.data
+  original_names: data/raw/original/spambase.names
+  # CSV convertido com os nomes oficiais das colunas
+  bruto: data/raw/spambase.csv
+  teste_fixo: data/raw/teste_fixo.csv
+  pasta_lotes: data/raw/lotes
+  pasta_processados: data/processed
+  alvo: spam
+  coluna_id: id_email      # identificador estável de cada e-mail (posição no arquivo original)
+  n_features_esperadas: 57
+
+preparacao_lotes:
+  # Executado uma única vez por src/preparar_lotes.py
+  proporcao_teste: 0.20
+  proporcoes_lotes: [0.75, 0.25]   # lote_01 e lote_02, sobre os 80% restantes
+
+caminhos:
+  artifacts: artifacts
+  ciclo_atual: artifacts/ciclo_atual.json
+  features_eleitas: artifacts/features_eleitas.json
+  models: models
+  modelo_vigente: models/modelo_vigente.json
+  estado_ingestao: models/estado_ingestao.json
+  historico_modelos: models/historico
+  figuras: reports/figuras
+  comparacao_ciclos: reports/figuras/comparacao_ciclos.csv
+  evidencias: evidencias
+
+validacao:
+  estrategia: StratifiedKFold
+  n_splits: 5
+  shuffle: true
+
+metrica:
+  principal: f1          # F1 da classe positiva (spam = 1)
+  direcao: maximizar
+  secundarias: [precision, recall, accuracy, roc_auc]
+
+votacao:
+  top_k: 20
+  votos_minimos: 2
+  desempate: media_posicoes   # média das posições nos rankings dos 3 métodos
+  minimo_features: 10
+  modelos:
+    RandomForestClassifier:
+      n_estimators: 300
+      max_depth: null
+      n_jobs: -1
+    LinearSVC:
+      C: 1.0
+      max_iter: 10000
+      dual: auto
+    LogisticRegression:
+      C: 1.0
+      max_iter: 5000
+      solver: lbfgs
+
+competicao:
+  modelo_a:
+    algoritmo: RandomForestClassifier
+    hiperparametros:
+      n_estimators: 300
+      max_depth: null
+      min_samples_leaf: 1
+      max_features: sqrt
+      n_jobs: -1
+  modelo_b:
+    algoritmo: LogisticRegression
+    hiperparametros:
+      C: 1.0
+      penalty: l2
+      solver: lbfgs
+      max_iter: 5000
+
+promocao:
+  limiar_melhoria: 0.005
+  f1_minimo: 0.85
+
+explicabilidade:
+  n_amostras_fundo: 200     # amostras de fundo do SHAP (background)
+  n_amostras_explicar: 300  # amostras do teste usadas no gráfico global
+  n_exemplos_individuais: 3
+
+mlflow:
+  tracking_db: mlflow.db
+  pasta_artefatos: mlartifacts
+  experimento: n3-spambase-mlops
