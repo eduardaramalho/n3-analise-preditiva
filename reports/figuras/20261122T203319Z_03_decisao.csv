@@ -1,0 +1,2 @@
+cycle_id,data_version,promover,decisao,motivo,f1_desafiante,f1_vigente_reavaliado,ganho_f1,passa_f1_minimo,f1_minimo,limiar_melhoria,vencedor,algoritmo_vencedor,run_id_desafiante,run_id_vigente_anterior
+20261122T203319Z,lotes-01_h59fffbce7fcb,True,promovido,Primeiro ciclo sem modelo vigente. F1 0.9262 >= mínimo 0.85: promovido.,0.926202,,,True,0.85,0.005,modelo_a,RandomForestClassifier,d1b5542f1d94460cae2357e32f037ccf,

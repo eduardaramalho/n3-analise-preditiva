@@ -1,0 +1,13 @@
+{
+  "lotes_ingeridos": [
+    "lote_01"
+  ],
+  "historico": [
+    {
+      "cycle_id": "20261122T203319Z",
+      "lote_novo": "lote_01",
+      "data_version": "lotes-01_h59fffbce7fcb",
+      "confirmado_em": "2026-11-22T20:34:12+00:00"
+    }
+  ]
+}
