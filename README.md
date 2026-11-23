@@ -1,14 +1,16 @@
-# Pipeline MLOps: classificação de spam (Trabalho N3, Análise Preditiva, Católica SC)
+# Classificação de e-mails como spam ou não spam
 
-Pipeline MLOps único, executado diariamente pelo GitHub Actions, que a cada ciclo incorpora dados novos, refaz a seleção de features por votação, coloca dois modelos para competir e só troca o modelo em produção quando o novo é comprovadamente melhor.
+Trabalho N3 de Análise Preditiva (Engenharia de Software, Católica SC). Pipeline MLOps único, executado pelo GitHub Actions, que a cada ciclo incorpora dados novos, refaz a seleção de features por votação, coloca dois modelos para competir e só troca o modelo em produção quando o novo é comprovadamente melhor.
 
 ## Objetivo
 
-Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 features numéricas de frequência de palavras, caracteres e letras maiúsculas, demonstrando um ciclo de vida completo de modelo: ingestão incremental, controle de qualidade, seleção de features, competição de modelos, promoção controlada, rastreamento de experimentos, previsões e explicabilidade.
+Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 features numéricas (frequências de palavras, frequências de caracteres e sequências de letras maiúsculas), demonstrando o ciclo de vida completo de um modelo: ingestão incremental, controle de qualidade, seleção de features, competição de modelos, promoção controlada, rastreamento de experimentos, previsões e explicabilidade.
 
-**Dataset:** Spambase, UCI Machine Learning Repository, id 94 (HOPKINS et al., 1999), licença CC BY 4.0. São 4.601 e-mails, dos quais 1.813 (39,4%) são spam. Os arquivos originais estão em `data/raw/original/`.
+* **Métrica principal:** F1 da classe spam, definida antes de qualquer treino no `config/config.yaml`. Precisão, recall, acurácia e ROC AUC são secundárias.
+* **Protocolo:** `StratifiedKFold` com 5 folds, `shuffle=True` e seed 42, igual para todos os modelos.
+* **Teste fixo:** 20% dos e-mails, separados uma única vez por grupo de conteúdo (cópias idênticas ficam sempre do mesmo lado) e nunca usados em decisões.
 
-## Arquitetura
+## Fluxo de um ciclo
 
 ```
               (uma única vez)
@@ -16,7 +18,7 @@ Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 featur
                                                                            ├─► lote_01.csv (60%)
                                                                            └─► lote_02.csv (20%)
 
- ciclo (GitHub Actions, diário ou manual)
+ ciclo (GitHub Actions, agendado ou manual)
  ┌──────────────┐   ┌──────────────────┐   ┌──────────────────────────┐   ┌─────────────────────┐
  │ 01 ETL       │──►│ 02 Votação de    │──►│ 03 Competição A x B e    │──►│ 04 Previsões no     │
  │ próximo lote │   │ features (RF,    │   │ promoção controlada      │   │ teste fixo + SHAP   │
@@ -29,21 +31,24 @@ Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 featur
  ──► commit do estado atualizado no repositório [skip ci]
 ```
 
-* **Chegada de dados simulada:** o ciclo 1 treina com o `lote_01`; o ciclo 2 adiciona o `lote_02`; a partir do ciclo 3 não há dados novos, mas a votação e a competição são refeitas.
-* **Identificação do ciclo:** cada ciclo tem um `cycle_id` (data e hora UTC, ex.: `20261117T235423Z`) e um `data_version` (lotes incorporados mais hash do treino, ex.: `lotes-01+02_h0ce6906487cc`), compartilhados pelos 4 notebooks em `artifacts/ciclo_atual.json`.
-* **Falha para tudo:** se qualquer notebook falhar, o job do Actions para, nada é commitado e o modelo vigente não muda. O lote só é marcado como ingerido no fim do notebook 04.
+1. **01 ETL:** incorpora o próximo lote sem duplicar registros (`id_email`), diagnostica e trata os dados com regras fixas (sem imputação, para evitar vazamento), mantém os outliers (são sinal de spam, não erro) e roda uma verificação de qualidade que interrompe o pipeline se falhar. Gera o `cycle_id` (data e hora UTC) e o `data_version` (lotes mais hash do treino).
+2. **02 Votação:** Random Forest (importância por impureza), LinearSVC e Regressão Logística (|coef| com padronização) ranqueiam as 57 features. Cada método vota no seu top 20; é eleita a feature com 2 votos ou mais, com desempate pela média das posições e mínimo de 10 features. A votação é um transformador (`SeletorPorVotacao`) refeito no treino de cada fold.
+3. **03 Competição e promoção:** Modelo A (`RandomForestClassifier`) e Modelo B (`LogisticRegression`) usam o mesmo seletor, o mesmo treino e os mesmos folds. Vence o maior F1 médio. O vencedor só é promovido se tiver F1 >= 0,85 e superar em pelo menos 0,005 o F1 do vigente, reavaliado pelo mesmo protocolo nos dados atuais.
+4. **04 Previsões:** carrega o vigente pelo manifesto, prevê no teste fixo, gera a matriz de confusão e as explicações SHAP e só então marca o lote como ingerido.
 
-## Estrutura do repositório
+**Chegada de dados simulada:** o ciclo 1 treina com o `lote_01`, o ciclo 2 adiciona o `lote_02` e, a partir do ciclo 3, não há dados novos, mas a votação e a competição são refeitas. Se qualquer notebook falhar, o job para, nada é commitado e o modelo vigente não muda.
+
+## Estrutura
 
 ```
 .github/workflows/pipeline_mlops.yml   workflow único (schedule + workflow_dispatch)
 config/config.yaml                     todos os parâmetros do projeto
 data/raw/original/                     arquivos originais da UCI (.data, .names, .DOCUMENTATION)
 data/raw/spambase.csv                  dataset com os nomes oficiais das colunas
-data/raw/teste_fixo.csv                20% separados uma única vez; nunca usados em decisões
+data/raw/teste_fixo.csv                teste fixo (20%), nunca usado em decisões
 data/raw/lotes/lote_01.csv, lote_02.csv
 data/processed/                        treino de cada versão de dados (treino_<data_version>.csv)
-notebooks/01_etl.ipynb                 ingestão, diagnóstico, tratamento, qualidade
+notebooks/01_etl.ipynb                 ingestão, diagnóstico, tratamento e qualidade
 notebooks/02_votacao_features.ipynb    votação de features
 notebooks/03_competicao_promocao.ipynb competição A x B e promoção
 notebooks/04_previsoes.ipynb           previsões no teste fixo e SHAP
@@ -59,30 +64,20 @@ src/                                   funções reutilizáveis (os notebooks s�
   rastreamento.py                      MLflow com SQLite portátil entre ambientes
   graficos.py                          padrão visual, tabelas CSV e gráficos PNG
   resetar_estado.py                    zera o estado para testar do zero
-models/modelo_vigente.json             manifesto do modelo em produção
+models/modelo_vigente.json             manifesto do modelo em produção e histórico de decisões
 models/estado_ingestao.json            lotes já incorporados
 models/historico/                      cada modelo treinado (<algoritmo>_<hash>.joblib) e indice_modelos.csv
 artifacts/                             ciclo_atual.json e features_eleitas.json
-reports/figuras/                       tabelas (CSV) e gráficos (PNG) para o relatório
+reports/figuras/                       tabelas (CSV) e gráficos (PNG) de cada ciclo, com o cycle_id no nome
+reports/figuras/comparacao_ciclos.csv  uma linha por ciclo: lote, features, F1 de A e B, decisão, métricas no teste
 evidencias/execucoes/<cycle_id>/       notebooks executados pelo Actions e evento.txt
 evidencias/teste_local/                notebooks executados nos testes locais (3 ciclos)
 mlflow.db, mlartifacts/                rastreamento do MLflow (versionados)
 ```
 
-## Como executar no Google Colab
-
-Os notebooks rodam sem alteração no Colab, no GitHub Actions e localmente. A primeira célula de cada um detecta o ambiente.
-
-1. Suba o repositório no GitHub (veja "Execução agendada" abaixo).
-2. Os notebooks já estão configurados com `REPO_URL = "https://github.com/eduardaramalho/n3-analise-preditiva.git"` na primeira célula de código. Se o repositório mudar de endereço, altere essa variável nos 4 notebooks. Se o repositório for privado, use um token de acesso na URL ou deixe-o público.
-3. No Colab: **Arquivo > Fazer upload de notebook** e escolha `notebooks/01_etl.ipynb`.
-4. **Ambiente de execução > Executar tudo**. A primeira célula clona o repositório em `/content/<nome-do-repo>`, entra na pasta e instala o `requirements.txt`. Se a instalação trocar a versão de uma biblioteca já carregada, a sessão reinicia sozinha: execute tudo de novo.
-5. Repita para os notebooks 02, 03 e 04, **na mesma sessão do Colab** e nessa ordem. Os arquivos gravados por um notebook ficam em `/content/<nome-do-repo>` e são lidos pelo seguinte.
-6. Para um novo ciclo, execute de novo do 01 ao 04. Para recomeçar do lote 1, no notebook 01 coloque `RESETAR = True`, execute e depois volte para `False`.
-
-Observação: o que é gerado no Colab fica só na sessão do Colab. O estado "oficial" é o do repositório, atualizado pelo GitHub Actions.
-
 ## Execução local
+
+Requer Python 3.12 (mesma linha do Colab e do runner do GitHub Actions). As versões das bibliotecas estão fixadas no `requirements.txt`.
 
 ```bash
 git clone https://github.com/eduardaramalho/n3-analise-preditiva.git
@@ -99,7 +94,7 @@ for nb in 01_etl 02_votacao_features 03_competicao_promocao 04_previsoes; do
 done
 ```
 
-Ou abra os notebooks no Jupyter/VS Code e execute na ordem. Para zerar o estado (lotes ingeridos, vigente, MLflow, figuras):
+Para zerar o estado (lotes ingeridos, vigente, MLflow e figuras) e recomeçar do lote 1:
 
 ```bash
 python -m src.resetar_estado --confirmar
@@ -107,23 +102,34 @@ python -m src.resetar_estado --confirmar
 
 Os scripts de preparação já foram executados e os resultados estão versionados. Só precisam ser rodados de novo se os dados originais mudarem: `python -m src.converter_dataset` e `python -m src.preparar_lotes`.
 
-## Execução agendada (GitHub Actions)
+**No Google Colab:** faça upload de `notebooks/01_etl.ipynb` e use **Executar tudo**. A primeira célula clona o repositório em `/content`, instala o `requirements.txt` e reinicia a sessão se alguma biblioteca mudar de versão (nesse caso, execute de novo). Repita para os notebooks 02, 03 e 04 na mesma sessão e nessa ordem. O que é gerado no Colab fica só na sessão; o estado oficial é o do repositório, atualizado pelo GitHub Actions.
+
+## Execução agendada
 
 O workflow `.github/workflows/pipeline_mlops.yml` tem um único job sequencial:
 
-1. registra o `github.event_name` no log, no resumo da execução e em `evidencias/execucoes/<cycle_id>/evento.txt` (evidência de que o ciclo foi disparado pelo `schedule`);
-2. checkout, Python 3.12 e instalação do `requirements.txt`;
-3. executa os notebooks 01, 02, 03 e 04 com `jupyter nbconvert --execute`, salvando as versões executadas em `evidencias/execucoes/<cycle_id>/`;
+1. registra o `github.event_name` no log, no resumo da execução e em `evidencias/execucoes/<cycle_id>/evento.txt`;
+2. faz checkout, configura o Python 3.12 e instala o `requirements.txt`;
+3. executa os notebooks 01 a 04 com `jupyter nbconvert --execute`, salvando as versões executadas em `evidencias/execucoes/<cycle_id>/`;
 4. publica com `actions/upload-artifact` os notebooks executados, `mlflow.db`, `mlartifacts/`, `models/`, `reports/figuras/` e `artifacts/`;
 5. faz commit do estado atualizado com `[skip ci]` na mensagem (permissão `contents: write`).
 
 * **Gatilhos:** `schedule` todo dia às 09:17 UTC (06:17 em Brasília) e `workflow_dispatch` (botão **Run workflow** na aba Actions).
 * **Concorrência:** `concurrency: pipeline-mlops` impede dois ciclos ao mesmo tempo.
-* Para ativar: **Settings > Actions > General**, permitir actions e, em *Workflow permissions*, marcar **Read and write permissions**.
+* **Para ativar:** em **Settings > Actions > General**, permitir actions e marcar **Read and write permissions** em *Workflow permissions*.
+
+**Execuções registradas:**
+
+| Ciclo | Evento | Decisão |
+|---|---|---|
+| `20261122T203319Z` | `workflow_dispatch` | promovido (Random Forest, F1 0,9262) |
+| `20261123T212753Z` | `schedule` | mantido (desafiante 0,9255 x vigente reavaliado 0,9280) |
+
+A execução agendada pode ser conferida em [actions/runs/45269752956](https://github.com/eduardaramalho/n3-analise-preditiva/actions/runs/45269752956) e em `evidencias/execucoes/20261123T212753Z/evento.txt`. O GitHub pode atrasar disparos agendados: o cron é 09:17 UTC e essa execução começou às 21:27 UTC.
 
 ## Consulta ao MLflow
 
-O MLflow usa um banco SQLite (`mlflow.db`) e a pasta `mlartifacts/`, ambos versionados. Como o MLflow grava caminhos absolutos e cada ambiente tem uma pasta raiz diferente (`/content/...` no Colab, `/home/runner/...` no Actions), o `src/rastreamento.py` reescreve esses caminhos para a pasta atual antes de cada uso. Para abrir a interface localmente:
+O MLflow usa um banco SQLite (`mlflow.db`) e a pasta `mlartifacts/`, ambos versionados. Como o MLflow grava caminhos absolutos e cada ambiente tem uma raiz diferente (`/content/...` no Colab, `/home/runner/...` no Actions), o `src/rastreamento.py` reescreve esses caminhos para a pasta atual antes de cada uso.
 
 ```bash
 git pull
@@ -131,7 +137,7 @@ python -m src.rastreamento
 mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 ```
 
-Acesse http://127.0.0.1:5000, experimento `n3-spambase-mlops`. Cada ciclo gera os runs abaixo, que podem ser filtrados pela tag `cycle_id` (ex.: `tags.cycle_id = '20261117T235423Z'`) ou pela tag `etapa`:
+Acesse http://127.0.0.1:5000, experimento `n3-spambase-mlops`. Os runs podem ser filtrados pela tag `cycle_id` (ex.: `tags.cycle_id = '20261123T212753Z'`) ou pela tag `etapa`:
 
 | Run | Tag `etapa` | Conteúdo |
 |---|---|---|
@@ -140,6 +146,8 @@ Acesse http://127.0.0.1:5000, experimento `n3-spambase-mlops`. Cada ciclo gera o
 | `reavaliacao_vigente_<cycle_id>` | reavaliacao_vigente | vigente avaliado nos dados atuais |
 | `decisao_<cycle_id>` | decisao | F1 comparados, decisão e motivo |
 | `previsoes_<cycle_id>` | previsoes | métricas no teste fixo, matriz de confusão e gráficos SHAP |
+
+Modelos idênticos não são gravados duas vezes: cada pipeline recebe um hash e, se já existir um modelo com o mesmo hash, o run só aponta para ele pela tag `modelo_uri`.
 
 ## Reprodução das previsões
 
@@ -152,38 +160,19 @@ X = teste.drop(columns=["id_email", "spam"])             # as 57 colunas brutas
 prob_spam = modelo.predict_proba(X)[:, 1]
 ```
 
-O mesmo modelo está no MLflow: `mlflow.sklearn.load_model(vigente["modelo_uri"])` (depois de `configurar_mlflow` de `src/rastreamento.py`). O pipeline recebe as 57 colunas e faz sozinho a seleção de features, o escalonamento e a previsão.
+O pipeline recebe as 57 colunas e faz sozinho a seleção de features, o escalonamento (nos modelos lineares) e a previsão. O mesmo modelo está no MLflow: `mlflow.sklearn.load_model(vigente["modelo_uri"])`, depois de `configurar_mlflow` de `src/rastreamento.py`. Com a seed 42 e os mesmos dados, o modelo treinado é idêntico.
 
-## Saídas para o relatório
+## Recurso adicional
 
-Tudo fica em `reports/figuras/`, com o `cycle_id` no início do nome: `<cycle_id>_<notebook>_<conteudo>.csv` ou `.png`. O arquivo `comparacao_ciclos.csv` (e `comparacao_ciclos.png`) acumula uma linha por ciclo: lote novo, features eleitas, F1 de A e B, vencedor, F1 do vigente reavaliado, decisão e motivo, métricas no teste fixo e o evento que disparou o ciclo.
+**Explicabilidade com SHAP (critério 10)**, integrada ao notebook 04 e executada em todo ciclo.
 
-| Notebook | Tabelas (CSV) | Gráficos (PNG) |
-|---|---|---|
-| 01 | diagnóstico antes e depois, resumo, outliers, tratamentos, verificação de qualidade | outliers x taxa de spam, classes antes e depois |
-| 02 | rankings dos 3 métodos, tabela de votos, features eleitas, estabilidade nos folds | top 20 por método, matriz de votos, estabilidade |
-| 03 | métricas por fold, comparação A x B, decisão | comparação dos modelos, F1 por fold |
-| 04 | métricas no teste, matriz de confusão, relatório por classe, previsões, exemplos, SHAP global e individual | matriz de confusão, SHAP global, beeswarm, waterfall de 3 e-mails |
+* **Problema:** a Random Forest não é interpretável, e o Spambase tem viés conhecido (palavras como `george` e `hp` indicam e-mail legítimo porque os e-mails vieram de um funcionário da HP).
+* **Solução:** `TreeExplainer` para a Random Forest (valores em probabilidade de spam) ou `LinearExplainer` para a Regressão Logística (valores em log-odds), escolhido automaticamente pelo algoritmo do vigente. O fundo do `LinearExplainer` usa amostras do treino, nunca do teste.
+* **Saídas:** importância global (barras), beeswarm e waterfall de 3 e-mails do teste (o spam mais confiante, o legítimo mais confiante e o erro mais confiante), salvos em `reports/figuras/` e no run `previsoes_<cycle_id>` do MLflow.
+* **Parâmetros:** seção `explicabilidade` do `config.yaml` (300 e-mails explicados no gráfico global, 200 amostras de fundo).
 
-## Decisões técnicas e justificativas
+## Dados e licença
 
-| Decisão | Justificativa |
-|---|---|
-| Teste fixo separado uma vez, por grupo de conteúdo | O Spambase tem 391 linhas duplicadas. A divisão mantém cópias idênticas do mesmo lado, para que nenhum e-mail do teste apareça no treino. A estratificação por rótulo e tamanho do grupo mantém a proporção de spam (diferença de até 1 ponto percentual, por causa de um grupo com 69 cópias). |
-| Teste fixo nunca usado em decisões | Votação, competição e promoção usam só a validação cruzada no treino. O teste mede o vigente de forma honesta e é comparável entre ciclos. |
-| Tratamentos com regras fixas | Faixas válidas vêm da documentação (frequências em [0, 100], maiúsculas >= 1). Ausentes são removidos em vez de imputados, porque imputar fora do Pipeline vazaria estatísticas entre folds. |
-| Remoção de duplicatas e rótulos conflitantes no treino | Cópias inflam a validação cruzada (a mesma linha no treino e na validação do fold). E-mails idênticos com rótulos diferentes são contraditórios. |
-| Outliers mantidos | Pelo IQR, qualquer ocorrência de palavra vira outlier (mais de 70% dos valores são zero). Os outliers carregam o sinal: entre os outliers de `char_freq_$`, 92% são spam. |
-| Votação como transformador dentro do Pipeline | Na validação cruzada, a votação é refeita no treino de cada fold. Escolher as features com todo o treino e depois validar geraria viés de seleção (F1 otimista). No ajuste final, o seletor chega às mesmas features do `features_eleitas.json` (conferido no notebook 03). |
-| StandardScaler só nos lineares, dentro do Pipeline | Coeficientes só são comparáveis com as features na mesma escala; árvores não precisam. Ajustado só no treino de cada fold. |
-| F1 da classe spam como métrica principal | Equilibra precisão e recall e não é enganado pelo desbalanceamento (60% não spam). |
-| Vigente reavaliado nos dados atuais, mesmos folds | Comparar com o F1 antigo do vigente seria comparar dados diferentes. A configuração dele (algoritmo, hiperparâmetros e features) é treinada de novo pelo mesmo protocolo. |
-| Limiar de melhoria de 0,005 e F1 mínimo de 0,85 | Diferenças menores que 0,005 estão dentro da variação entre folds e não justificam a troca. O mínimo impede promover um modelo ruim. No ciclo 2 dos testes, o desafiante (0,9255) ficou abaixo do vigente reavaliado (0,9280) e o vigente foi mantido. |
-| Seed 42 em tudo | Mesmos folds para todos os modelos e resultados reproduzíveis: com os mesmos dados, o modelo treinado é idêntico. |
-| Modelos sem cópias repetidas | Uma Random Forest serializada tem cerca de 12 MB. Cada modelo recebe um hash. Se já existe um modelo idêntico, o run do MLflow só aponta para ele (tag `modelo_uri`) e o histórico não grava de novo. Assim o repositório não cresce a cada ciclo sem dados novos. |
-| MLflow em SQLite versionado | Funciona sem servidor no Colab, no Actions e localmente. O histórico fica no próprio repositório. |
-| Python 3.12 e versões fixadas | Mesma linha do Colab e do runner. `scipy`, `SQLAlchemy` e `alembic` também foram fixados porque versões mais novas quebravam o `scikit-learn` 1.6 e o MLflow 2.22. |
+**Spambase**, UCI Machine Learning Repository, id 94: 4.601 e-mails, dos quais 1.813 (39,4%) são spam. Os arquivos originais estão em `data/raw/original/`, sem alteração. Licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
-## Referência
-
-HOPKINS, Mark; REEBER, Erik; FORMAN, George; SUERMONDT, Jaap. **Spambase** [dataset]. UCI Machine Learning Repository, 1999. DOI: https://doi.org/10.24432/C53G6X. Licença CC BY 4.0.
+HOPKINS, Mark; REEBER, Erik; FORMAN, George; SUERMONDT, Jaap. **Spambase** [dataset]. UCI Machine Learning Repository, 1999. DOI: https://doi.org/10.24432/C53G6X.
