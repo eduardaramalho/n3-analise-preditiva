@@ -1,0 +1,46 @@
+{
+  "cycle_id": "20261122T203319Z",
+  "data_version": "lotes-01_h59fffbce7fcb",
+  "gerado_em": "2026-11-22T20:33:31+00:00",
+  "features_eleitas": [
+    "word_freq_hp",
+    "word_freq_george",
+    "char_freq_$",
+    "word_freq_remove",
+    "capital_run_length_longest",
+    "word_freq_free",
+    "word_freq_hpl",
+    "word_freq_edu",
+    "word_freq_000",
+    "char_freq_!",
+    "word_freq_meeting",
+    "word_freq_85",
+    "word_freq_lab",
+    "word_freq_re",
+    "word_freq_cs",
+    "word_freq_project",
+    "word_freq_pm",
+    "word_freq_3d",
+    "char_freq_#",
+    "word_freq_conference"
+  ],
+  "n_features_eleitas": 20,
+  "regra": {
+    "top_k": 20,
+    "votos_minimos": 2,
+    "minimo_features": 10,
+    "desempate": "media_posicoes",
+    "metodos": [
+      "RandomForestClassifier",
+      "LinearSVC",
+      "LogisticRegression"
+    ]
+  },
+  "completadas_pelo_minimo": [],
+  "distribuicao_votos": {
+    "3": 9,
+    "2": 11,
+    "1": 11,
+    "0": 26
+  }
+}

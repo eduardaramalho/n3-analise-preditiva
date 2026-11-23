@@ -1,0 +1,63 @@
+{
+  "cycle_id": "20261123T212753Z",
+  "data_version": "lotes-01+02_h0ce6906487cc",
+  "lotes_ciclo": [
+    "lote_01",
+    "lote_02"
+  ],
+  "lote_novo": "lote_02",
+  "tem_dados_novos": true,
+  "arquivo_treino": "data/processed/treino_lotes-01+02_h0ce6906487cc.csv",
+  "linhas_treino": 3363,
+  "proporcao_spam_treino": 0.3988,
+  "etapas": {
+    "01_etl": "concluido",
+    "02_votacao": "concluido",
+    "03_competicao_promocao": "concluido",
+    "04_previsoes": "concluido"
+  },
+  "run_id_votacao": "c671f20cb3734d7983b0b31aa8cbc19f",
+  "features_eleitas": [
+    "word_freq_hp",
+    "word_freq_george",
+    "char_freq_$",
+    "capital_run_length_longest",
+    "word_freq_remove",
+    "word_freq_edu",
+    "word_freq_free",
+    "word_freq_hpl",
+    "word_freq_000",
+    "word_freq_meeting",
+    "word_freq_re",
+    "word_freq_lab",
+    "word_freq_85",
+    "word_freq_cs",
+    "word_freq_project",
+    "word_freq_3d",
+    "word_freq_pm",
+    "char_freq_#",
+    "word_freq_conference",
+    "word_freq_addresses"
+  ],
+  "run_ids_modelos": {
+    "modelo_a": "121623ef0dcf415db196d3867ae7393c",
+    "modelo_b": "3cc692acc3d6485c853313296037841e"
+  },
+  "run_id_reavaliacao_vigente": "1ce741a1c302455cb72d278763b48698",
+  "run_id_decisao": "177929fa3ee340e5a76b2f929a9cfe9c",
+  "vencedor": "modelo_a",
+  "decisao": {
+    "promover": false,
+    "decisao": "mantido_vigente",
+    "motivo": "Ganho de F1 -0.0025 sobre o vigente (0.9280) é menor que o limiar 0.005: vigente mantido.",
+    "f1_desafiante": 0.92548,
+    "f1_vigente_reavaliado": 0.927968,
+    "ganho_f1": -0.002488,
+    "passa_f1_minimo": true,
+    "f1_minimo": 0.85,
+    "limiar_melhoria": 0.005,
+    "vencedor": "modelo_a",
+    "algoritmo_vencedor": "RandomForestClassifier"
+  },
+  "run_id_previsoes": "4cca91fa165c4c1bbd339a9a70e2cb9d"
+}
