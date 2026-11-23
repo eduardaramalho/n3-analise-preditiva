@@ -1,9 +1,0 @@
-etapa,linhas_removidas,linhas_restantes,justificativa
-1. Identificador repetido,0,2796,O mesmo e-mail (id_email) não pode entrar duas vezes no treino.
-2. Conversão de tipos,0,2796,Todas as features convertidas para numérico; texto inválido vira ausente e é tratado na etapa 4.
-3. Alvo inválido,0,2796,O alvo só pode ser 0 (não spam) ou 1 (spam). Sem rótulo confiável o registro não serve para treino.
-4. Valores ausentes,0,2796,"Remoção em vez de imputação: imputar exigiria estatísticas do conjunto (média, mediana) calculadas fora do Pipeline, o que geraria vazamento entre folds. A documentação indica que não há ausentes."
-5. Fora da faixa documentada,0,2796,"Frequências devem estar em [0, 100] e contagens de maiúsculas devem ser >= 1. Valor fora disso é erro de coleta."
-6. Rótulo conflitante,4,2792,E-mails com as 57 features idênticas mas rótulos diferentes são contraditórios: o modelo não tem como acertar os dois. Todas as cópias são removidas.
-7. Duplicatas exatas,271,2521,"Cópias idênticas dão peso extra a poucos e-mails e, na validação cruzada, a mesma linha pode cair no treino e na validação do fold, inflando a métrica. Mantida a primeira ocorrência."
-8. Outliers,0,2521,"Mantidos. Em frequências de palavras e caracteres, valores altos são justamente o sinal de spam (ex.: muitos '$' ou '!'). Os modelos usados são robustos: Random Forest não é afetado pela escala e os modelos lineares recebem StandardScaler dentro do Pipeline."
