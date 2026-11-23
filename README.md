@@ -4,6 +4,8 @@ Trabalho N3 de Análise Preditiva (Engenharia de Software, Católica SC). Pipeli
 
 Integrantes: Anna Cristina Koerich, Eduarda Cristina Nunes da Silveira Ramalho e Eduardo Alberto Dal'piaz.
 
+**Relatório:** [reports/relatorio/relatorio_n3.pdf](reports/relatorio/relatorio_n3.pdf)
+
 ## Objetivo
 
 Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 features numéricas (frequências de palavras, frequências de caracteres e sequências de letras maiúsculas), demonstrando o ciclo de vida completo de um modelo: ingestão incremental, controle de qualidade, seleção de features, competição de modelos, promoção controlada, rastreamento de experimentos, previsões e explicabilidade.
