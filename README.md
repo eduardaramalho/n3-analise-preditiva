@@ -2,6 +2,8 @@
 
 Trabalho N3 de Análise Preditiva (Engenharia de Software, Católica SC). Pipeline MLOps único, executado pelo GitHub Actions, que a cada ciclo incorpora dados novos, refaz a seleção de features por votação, coloca dois modelos para competir e só troca o modelo em produção quando o novo é comprovadamente melhor.
 
+Integrantes: Anna Cristina Koerich, Eduarda Cristina Nunes da Silveira Ramalho e Eduardo Alberto Dal'piaz.
+
 ## Objetivo
 
 Classificar e-mails como **spam (1)** ou **não spam (0)** a partir de 57 features numéricas (frequências de palavras, frequências de caracteres e sequências de letras maiúsculas), demonstrando o ciclo de vida completo de um modelo: ingestão incremental, controle de qualidade, seleção de features, competição de modelos, promoção controlada, rastreamento de experimentos, previsões e explicabilidade.
