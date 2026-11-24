@@ -1,12 +1,12 @@
 {
-  "cycle_id": "20261123T212753Z",
+  "cycle_id": "20261124T201119Z",
   "data_version": "lotes-01+02_h0ce6906487cc",
   "lotes_ciclo": [
     "lote_01",
     "lote_02"
   ],
-  "lote_novo": "lote_02",
-  "tem_dados_novos": true,
+  "lote_novo": null,
+  "tem_dados_novos": false,
   "arquivo_treino": "data/processed/treino_lotes-01+02_h0ce6906487cc.csv",
   "linhas_treino": 3363,
   "proporcao_spam_treino": 0.3988,
@@ -16,7 +16,7 @@
     "03_competicao_promocao": "concluido",
     "04_previsoes": "concluido"
   },
-  "run_id_votacao": "c671f20cb3734d7983b0b31aa8cbc19f",
+  "run_id_votacao": "536dfb48ed904ae1a601daac3ef16b38",
   "features_eleitas": [
     "word_freq_hp",
     "word_freq_george",
@@ -40,11 +40,11 @@
     "word_freq_addresses"
   ],
   "run_ids_modelos": {
-    "modelo_a": "121623ef0dcf415db196d3867ae7393c",
-    "modelo_b": "3cc692acc3d6485c853313296037841e"
+    "modelo_a": "b597f9860fee4567a285747de10a3115",
+    "modelo_b": "03ed230934124d51b1a3457c7f001f2b"
   },
-  "run_id_reavaliacao_vigente": "1ce741a1c302455cb72d278763b48698",
-  "run_id_decisao": "177929fa3ee340e5a76b2f929a9cfe9c",
+  "run_id_reavaliacao_vigente": "db18b3221a2c427ead35e0050b788d54",
+  "run_id_decisao": "48610147cb114d579dd7862bb978ee1b",
   "vencedor": "modelo_a",
   "decisao": {
     "promover": false,
@@ -59,5 +59,5 @@
     "vencedor": "modelo_a",
     "algoritmo_vencedor": "RandomForestClassifier"
   },
-  "run_id_previsoes": "4cca91fa165c4c1bbd339a9a70e2cb9d"
+  "run_id_previsoes": "e1d9668d63e44190b6ea20ef222641d0"
 }

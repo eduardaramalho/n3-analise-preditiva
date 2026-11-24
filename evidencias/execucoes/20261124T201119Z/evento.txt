@@ -1,0 +1,7 @@
+github.event_name: schedule
+cycle_id: 20261124T201119Z
+workflow_run_id: 45477958881
+workflow_run_url: https://github.com/eduardaramalho/n3-analise-preditiva/actions/runs/45477958881
+commit: 60585fda3175d339ee5044e58f3ce3f28019a91d
+inicio_utc: 2026-11-24T20:11:20Z
+fim_utc: 2026-11-24T20:12:22Z
