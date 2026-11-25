@@ -1,0 +1,12 @@
+Pipeline(steps=[('seletor',
+                 SeletorPorVotacao(modelos_votacao={'LinearSVC': {'C': 1.0,
+                                                                  'dual': 'auto',
+                                                                  'max_iter': 10000},
+                                                    'LogisticRegression': {'C': 1.0,
+                                                                           'max_iter': 5000,
+                                                                           'solver': 'lbfgs'},
+                                                    'RandomForestClassifier': {'max_depth': None,
+                                                                               'n_estimators': 300,
+                                                                               'n_jobs': -1}})),
+                ('escalonador', StandardScaler()),
+                ('modelo', LogisticRegression(max_iter=5000, random_state=42))])

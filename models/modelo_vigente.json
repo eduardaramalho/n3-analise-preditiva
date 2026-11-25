@@ -53,8 +53,8 @@
   "motivo": "Primeiro ciclo sem modelo vigente. F1 0.9262 >= mínimo 0.85: promovido.",
   "promovido_em": "2026-11-22T20:33:51+00:00",
   "ultima_decisao": {
-    "cycle_id": "20261124T201119Z",
-    "avaliado_em": "2026-11-24T20:11:58+00:00",
+    "cycle_id": "20261125T191825Z",
+    "avaliado_em": "2026-11-25T19:18:51+00:00",
     "promover": false,
     "decisao": "mantido_vigente",
     "motivo": "Ganho de F1 -0.0025 sobre o vigente (0.9280) é menor que o limiar 0.005: vigente mantido.",
@@ -67,7 +67,7 @@
     "vencedor": "modelo_a",
     "algoritmo_vencedor": "RandomForestClassifier",
     "desafiante": {
-      "run_id": "b597f9860fee4567a285747de10a3115",
+      "run_id": "015c66ac5f6e4f9ea6bb98007e0d9892",
       "algoritmo": "RandomForestClassifier",
       "nome_modelo": "modelo_a"
     }
@@ -87,6 +87,12 @@
     },
     {
       "cycle_id": "20261124T201119Z",
+      "decisao": "mantido_vigente",
+      "motivo": "Ganho de F1 -0.0025 sobre o vigente (0.9280) é menor que o limiar 0.005: vigente mantido.",
+      "run_id_vigente_apos": "d1b5542f1d94460cae2357e32f037ccf"
+    },
+    {
+      "cycle_id": "20261125T191825Z",
       "decisao": "mantido_vigente",
       "motivo": "Ganho de F1 -0.0025 sobre o vigente (0.9280) é menor que o limiar 0.005: vigente mantido.",
       "run_id_vigente_apos": "d1b5542f1d94460cae2357e32f037ccf"

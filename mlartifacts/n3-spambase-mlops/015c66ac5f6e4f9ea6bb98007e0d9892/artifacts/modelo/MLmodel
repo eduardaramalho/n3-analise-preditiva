@@ -1,0 +1,76 @@
+artifact_path: modelo
+flavors:
+  python_function:
+    code: code
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.16
+  sklearn:
+    code: code
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+is_signature_from_type_hint: false
+mlflow_version: 2.22.0
+model_size_bytes: 13054661
+model_uuid: 304d2934c35e4c54b7f5b77cd0b13f94
+prompts: null
+run_id: 015c66ac5f6e4f9ea6bb98007e0d9892
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "word_freq_make", "required": true}, {"type":
+    "double", "name": "word_freq_address", "required": true}, {"type": "double", "name":
+    "word_freq_all", "required": true}, {"type": "double", "name": "word_freq_3d",
+    "required": true}, {"type": "double", "name": "word_freq_our", "required": true},
+    {"type": "double", "name": "word_freq_over", "required": true}, {"type": "double",
+    "name": "word_freq_remove", "required": true}, {"type": "double", "name": "word_freq_internet",
+    "required": true}, {"type": "double", "name": "word_freq_order", "required": true},
+    {"type": "double", "name": "word_freq_mail", "required": true}, {"type": "double",
+    "name": "word_freq_receive", "required": true}, {"type": "double", "name": "word_freq_will",
+    "required": true}, {"type": "double", "name": "word_freq_people", "required":
+    true}, {"type": "double", "name": "word_freq_report", "required": true}, {"type":
+    "double", "name": "word_freq_addresses", "required": true}, {"type": "double",
+    "name": "word_freq_free", "required": true}, {"type": "double", "name": "word_freq_business",
+    "required": true}, {"type": "double", "name": "word_freq_email", "required": true},
+    {"type": "double", "name": "word_freq_you", "required": true}, {"type": "double",
+    "name": "word_freq_credit", "required": true}, {"type": "double", "name": "word_freq_your",
+    "required": true}, {"type": "double", "name": "word_freq_font", "required": true},
+    {"type": "double", "name": "word_freq_000", "required": true}, {"type": "double",
+    "name": "word_freq_money", "required": true}, {"type": "double", "name": "word_freq_hp",
+    "required": true}, {"type": "double", "name": "word_freq_hpl", "required": true},
+    {"type": "double", "name": "word_freq_george", "required": true}, {"type": "double",
+    "name": "word_freq_650", "required": true}, {"type": "double", "name": "word_freq_lab",
+    "required": true}, {"type": "double", "name": "word_freq_labs", "required": true},
+    {"type": "double", "name": "word_freq_telnet", "required": true}, {"type": "double",
+    "name": "word_freq_857", "required": true}, {"type": "double", "name": "word_freq_data",
+    "required": true}, {"type": "double", "name": "word_freq_415", "required": true},
+    {"type": "double", "name": "word_freq_85", "required": true}, {"type": "double",
+    "name": "word_freq_technology", "required": true}, {"type": "double", "name":
+    "word_freq_1999", "required": true}, {"type": "double", "name": "word_freq_parts",
+    "required": true}, {"type": "double", "name": "word_freq_pm", "required": true},
+    {"type": "double", "name": "word_freq_direct", "required": true}, {"type": "double",
+    "name": "word_freq_cs", "required": true}, {"type": "double", "name": "word_freq_meeting",
+    "required": true}, {"type": "double", "name": "word_freq_original", "required":
+    true}, {"type": "double", "name": "word_freq_project", "required": true}, {"type":
+    "double", "name": "word_freq_re", "required": true}, {"type": "double", "name":
+    "word_freq_edu", "required": true}, {"type": "double", "name": "word_freq_table",
+    "required": true}, {"type": "double", "name": "word_freq_conference", "required":
+    true}, {"type": "double", "name": "char_freq_;", "required": true}, {"type": "double",
+    "name": "char_freq_(", "required": true}, {"type": "double", "name": "char_freq_[",
+    "required": true}, {"type": "double", "name": "char_freq_!", "required": true},
+    {"type": "double", "name": "char_freq_$", "required": true}, {"type": "double",
+    "name": "char_freq_#", "required": true}, {"type": "double", "name": "capital_run_length_average",
+    "required": true}, {"type": "long", "name": "capital_run_length_longest", "required":
+    true}, {"type": "long", "name": "capital_run_length_total", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-11-25 19:18:48.444240'
