@@ -1,5 +1,5 @@
 {
-  "cycle_id": "20261125T191825Z",
+  "cycle_id": "20261126T190119Z",
   "data_version": "lotes-01+02_h0ce6906487cc",
   "lotes_ciclo": [
     "lote_01",
@@ -16,7 +16,7 @@
     "03_competicao_promocao": "concluido",
     "04_previsoes": "concluido"
   },
-  "run_id_votacao": "2357cf8e43684ad7bdec0fa237f3f456",
+  "run_id_votacao": "3573514b55c6471083e3344ce396efc2",
   "features_eleitas": [
     "word_freq_hp",
     "word_freq_george",
@@ -40,11 +40,11 @@
     "word_freq_addresses"
   ],
   "run_ids_modelos": {
-    "modelo_a": "015c66ac5f6e4f9ea6bb98007e0d9892",
-    "modelo_b": "82e584fb74354199863b0d79d4ce2af7"
+    "modelo_a": "08c64511dce4496da4e8c6940850e1e9",
+    "modelo_b": "b810c88219df4db197d5297ac074099e"
   },
-  "run_id_reavaliacao_vigente": "b37f9dd9de6d48119cee6ebfb39456f2",
-  "run_id_decisao": "bb5943bed1114466ab9f48832625295f",
+  "run_id_reavaliacao_vigente": "b07c169b501c4bf2863a8b9271779a94",
+  "run_id_decisao": "e4de9bd1a36247eda31a3f39e552041d",
   "vencedor": "modelo_a",
   "decisao": {
     "promover": false,
@@ -59,5 +59,5 @@
     "vencedor": "modelo_a",
     "algoritmo_vencedor": "RandomForestClassifier"
   },
-  "run_id_previsoes": "6e2cd6ebfb0e4b8b85167116e50a5ec4"
+  "run_id_previsoes": "5d258f625d004a5d9e02b6ae9796bb07"
 }
