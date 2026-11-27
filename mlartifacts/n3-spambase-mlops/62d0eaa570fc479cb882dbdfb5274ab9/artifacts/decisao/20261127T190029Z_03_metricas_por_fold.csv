@@ -1,0 +1,11 @@
+modelo,fold,f1,precision,recall,accuracy,roc_auc
+Modelo A (RandomForestClassifier),1,0.9262,0.9194,0.9331,0.9406,0.9757
+Modelo A (RandomForestClassifier),2,0.9236,0.9219,0.9254,0.9391,0.9753
+Modelo A (RandomForestClassifier),3,0.9118,0.917,0.9067,0.9302,0.9774
+Modelo A (RandomForestClassifier),4,0.9381,0.9434,0.9328,0.9509,0.9825
+Modelo A (RandomForestClassifier),5,0.9276,0.9225,0.9328,0.942,0.9763
+Modelo B (LogisticRegression),1,0.8868,0.9004,0.8736,0.9108,0.9603
+Modelo B (LogisticRegression),2,0.8889,0.9306,0.8507,0.9153,0.9685
+Modelo B (LogisticRegression),3,0.8627,0.9091,0.8209,0.896,0.96
+Modelo B (LogisticRegression),4,0.8936,0.9277,0.8619,0.9182,0.9744
+Modelo B (LogisticRegression),5,0.8963,0.9424,0.8545,0.9211,0.9714

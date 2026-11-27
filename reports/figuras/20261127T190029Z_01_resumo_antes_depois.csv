@@ -1,0 +1,13 @@
+,antes,depois
+linhas,3696,3363
+colunas_features,57,57
+ausentes_total,0,0
+colunas_nao_numericas,0,0
+ids_duplicados,0,0
+linhas_duplicadas_exatas,329,0
+grupos_rotulo_conflitante,2,0
+linhas_rotulo_conflitante,4,0
+valores_fora_da_faixa,0,0
+valores_alvo,"[0, 1]","[0, 1]"
+proporcao_spam,0.3918,0.3988
+colunas_com_outliers_iqr,57,57

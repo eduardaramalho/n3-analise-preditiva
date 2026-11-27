@@ -33,6 +33,12 @@
       "lote_novo": null,
       "data_version": "lotes-01+02_h0ce6906487cc",
       "confirmado_em": "2026-11-26T19:02:22+00:00"
+    },
+    {
+      "cycle_id": "20261127T190029Z",
+      "lote_novo": null,
+      "data_version": "lotes-01+02_h0ce6906487cc",
+      "confirmado_em": "2026-11-27T19:01:19+00:00"
     }
   ]
 }
